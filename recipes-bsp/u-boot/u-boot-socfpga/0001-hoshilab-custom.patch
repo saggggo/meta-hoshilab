@@ -1,0 +1,42 @@
+From c357b1e02f5ac94ab5589e5b797e46435fec08f9 Mon Sep 17 00:00:00 2001
+From: Saggggo <sagoryota@gmail.com>
+Date: Sun, 8 Dec 2019 15:52:45 +0900
+Subject: [PATCH] hoshilab custom
+
+Signed-off-by: Saggggo <sagoryota@gmail.com>
+---
+ include/configs/socfpga_common.h | 3 +++
+ include/configs/socfpga_sockit.h | 3 +++
+ 2 files changed, 6 insertions(+)
+
+diff --git a/include/configs/socfpga_common.h b/include/configs/socfpga_common.h
+index 419812a7c8..81239eef67 100644
+--- a/include/configs/socfpga_common.h
++++ b/include/configs/socfpga_common.h
+@@ -275,6 +275,9 @@ unsigned int cm_get_qspi_controller_clk_hz(void);
+ 	"pxefile_addr_r=0x02200000\0" \
+ 	"ramdisk_addr_r=0x02300000\0" \
+ 	"socfpga_legacy_reset_compat=1\0" \
++	"fpgadata=0x20000000\0" \
++	"fpgadatasize=ffffff\0" \
++	"fpgaload=fatload mmc 0:1 ${fpgadata} fpga_config.rbf; fpga load 0 ${fpgadata} ${fpgadatasize}\0" \
+ 	BOOTENV
+ 
+ #endif
+diff --git a/include/configs/socfpga_sockit.h b/include/configs/socfpga_sockit.h
+index 3a7f354914..6aba10e7df 100644
+--- a/include/configs/socfpga_sockit.h
++++ b/include/configs/socfpga_sockit.h
+@@ -16,6 +16,9 @@
+ 
+ /* Ethernet on SoC (EMAC) */
+ 
++#define CONFIG_ENV_IS_IN_MMC 1
++#define CONFIG_BOOTCOMMAND "run fpgaload; bridge enable; run distro_bootcmd"
++
+ /* The rest of the configuration is shared */
+ #include <configs/socfpga_common.h>
+ 
+-- 
+2.17.1
+
