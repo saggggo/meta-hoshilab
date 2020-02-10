@@ -10,6 +10,7 @@ PACKAGE_INSTALL += " \
   packagegroup-self-hosted-extended \
   packagegroup-self-hosted-host-tools \
   packagegroup-core-full-cmdline \
+  packagegroup-qt5-toolchain-target \
 "
 
 
@@ -18,5 +19,14 @@ LICENSE = "MIT"
 #PACKAGE_INSTALL += " packagegroup-self-hosted-debug"
 # IMAGE_FSTYPES = "ext4"
 #
-IMAGE_INSTALL_append = " postgresql python3 python3-pandas python3-numpy python3-periphery"
+IMAGE_INSTALL += " \
+  postgresql \
+  python3 \
+  python3-pandas \
+  python3-numpy \
+  python3-periphery \
+  qtquickcontrols \
+  nodejs \
+"
+
 export IMAGE_BASENAME = "hoshilab-linux"
