@@ -10,10 +10,6 @@
 static struct kobject *hoshilab_kobj;
 static void __iomem *base_addr;
 
-static ssize_t config_show(struct kobject *kobj, struct kobj_attribute *kattr, char *buf) {
-	return sprintf(buf, "%x: %x\n", base_addr, *(u32 *)base_addr);
-}
-
 static struct attribute *config_attrs[NUMBEROF_SYSFS_ENTRY + 1];
 static struct attribute *data_attrs[NUMBEROF_SYSFS_ENTRY + 1];
 
@@ -33,6 +29,14 @@ struct container_sysfs {
 };
 
 static struct container_sysfs *config_sysfs;
+static char (*config_name)[3];
+static char (*data_name)[3];
+
+static ssize_t config_read(struct kobject *kobj, struct kobj_attribute *kattr, char *buf) {
+	struct container_sysfs *container;
+	container = container_of(kattr, struct container_sysfs, kattr);
+	return sprintf(buf, "%p: %x\n", container->address, *(u32 *)container->address);
+}
 
 struct hoshilab_pe_platform_data {
 	const char *name;
@@ -55,19 +59,17 @@ static int pe_platform_probe(struct platform_device *pdev) {
 			return PTR_ERR(base_addr);
 
 	config_sysfs = (struct container_sysfs *)kzalloc(sizeof(struct container_sysfs) * NUMBEROF_SYSFS_ENTRY, GFP_KERNEL);
-
+	config_name = (char(*)[3])kzalloc(sizeof(char)*3*NUMBEROF_SYSFS_ENTRY, GFP_KERNEL);
 	for (i = 0; i < NUMBEROF_SYSFS_ENTRY; i++) {
-		char name[3];
-		name[0] = (char)(i/10 + '0');
-		name[1] = (char)(i%10 + '0');
-		name[2] = NULL;
+		config_name[i][0] = (char)(i/10 + '0');
+		config_name[i][1] = (char)(i%10 + '0');
+		config_name[i][2] = '\0';
 
 		config_sysfs[i].address = base_addr + i;
-		config_sysfs[i].kattr.attr.name = name;
+		config_sysfs[i].kattr.attr.name = config_name[i];
 		config_sysfs[i].kattr.attr.mode = 0444;
-		config_sysfs[i].kattr.show =  config_show;
+		config_sysfs[i].kattr.show =  config_read;
 		config_sysfs[i].kattr.store = NULL;
-
 		config_attrs[i] = &config_sysfs[i].kattr.attr;
 	}
 	config_attrs[i] = NULL;
