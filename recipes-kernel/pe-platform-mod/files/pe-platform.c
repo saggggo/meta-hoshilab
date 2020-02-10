@@ -34,7 +34,6 @@ struct container_sysfs {
 
 static struct container_sysfs *config_sysfs;
 
-
 struct hoshilab_pe_platform_data {
 	const char *name;
 } pe_platform_data = {"pe-platform"};
@@ -54,7 +53,7 @@ static int pe_platform_probe(struct platform_device *pdev) {
 	base_addr = devm_ioremap_resource(&pdev->dev, res);
 	if (IS_ERR(base_addr))
 			return PTR_ERR(base_addr);
-	
+
 	config_sysfs = (struct container_sysfs *)kzalloc(sizeof(struct container_sysfs) * NUMBEROF_SYSFS_ENTRY, GFP_KERNEL);
 
 	for (i = 0; i < NUMBEROF_SYSFS_ENTRY; i++) {
@@ -62,8 +61,7 @@ static int pe_platform_probe(struct platform_device *pdev) {
 		name[0] = (char)(i/10 + '0');
 		name[1] = (char)(i%10 + '0');
 		name[2] = NULL;
-		printk("%d: %s\n", i, name);
-		
+
 		config_sysfs[i].address = base_addr + i;
 		config_sysfs[i].kattr.attr.name = name;
 		config_sysfs[i].kattr.attr.mode = 0444;
@@ -72,7 +70,6 @@ static int pe_platform_probe(struct platform_device *pdev) {
 
 		config_attrs[i] = &config_sysfs[i].kattr.attr;
 	}
-	printk("%d:\n", i);
 	config_attrs[i] = NULL;
 
 	hoshilab_kobj = kobject_create_and_add("pe-platform", kernel_kobj);
@@ -80,7 +77,6 @@ static int pe_platform_probe(struct platform_device *pdev) {
 		return -ENOMEM;
 	}
 	retval = sysfs_create_group(hoshilab_kobj, &config);
-	printk("77: \n");
 	if (retval) {
 		kobject_put(hoshilab_kobj);
 	}
