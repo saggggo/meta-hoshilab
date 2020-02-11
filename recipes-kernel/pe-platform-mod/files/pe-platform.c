@@ -6,12 +6,13 @@
 #include <linux/sysfs.h>
 
 #define NUMBEROF_CONFIG_ENTRY 64
+#define NUMBEROF_DATA_ENTRY 192
 
 static struct kobject *hoshilab_kobj;
 static void __iomem *base_addr;
 
 static struct attribute *config_attrs[NUMBEROF_CONFIG_ENTRY + 1];
-static struct attribute *data_attrs[NUMBEROF_CONFIG_ENTRY + 1];
+static struct attribute *data_attrs[NUMBEROF_DATA_ENTRY + 1];
 
 static struct attribute_group config = {
 	.name = "config",
@@ -29,8 +30,9 @@ struct container_sysfs {
 };
 
 static struct container_sysfs *config_sysfs;
+static struct container_sysfs *data_sysfs;
 static char (*config_name)[3];
-static char (*data_name)[3];
+static char (*data_name)[4];
 
 static ssize_t config_read(struct kobject *kobj, struct kobj_attribute *kattr, char *buf) {
 	struct container_sysfs *container;
@@ -40,12 +42,9 @@ static ssize_t config_read(struct kobject *kobj, struct kobj_attribute *kattr, c
 
 static ssize_t config_write(struct kobject *kobj, struct kobj_attribute *kattr, const char *buf, size_t size) {
 	u32 value;
-	int num;
 	struct container_sysfs *container;
 	container = container_of(kattr, struct container_sysfs, kattr);
-	num = sscanf(buf, "%x", &value);
-	if (!num)
-		return -1;
+	sscanf(buf, "%x", &value);
 	*(u32 *)(container->address) = value;
 	return size;
 }
@@ -92,11 +91,32 @@ static int pe_platform_probe(struct platform_device *pdev) {
 	}
 	config_attrs[i] = NULL;
 
+	data_sysfs = (struct container_sysfs *)kzalloc(sizeof(struct container_sysfs) * NUMBEROF_DATA_ENTRY, GFP_KERNEL);
+	data_name = (char(*)[4])kzalloc(sizeof(char)*4*NUMBEROF_DATA_ENTRY, GFP_KERNEL);
+	for (i = 0; i < NUMBEROF_DATA_ENTRY; i++) {
+		data_name[i][0] = (char)(i/100 + '0');
+		data_name[i][1] = (char)(i%100/10 + '0');
+		data_name[i][2] = (char)(i%10 + '0');
+		data_name[i][3] = '\0';
+
+		data_sysfs[i].address = base_addr + 4*64 + i*4;
+		data_sysfs[i].kattr.attr.name = data_name[i];
+		data_sysfs[i].kattr.attr.mode = 0444;
+		data_sysfs[i].kattr.show =  data_read;
+		data_sysfs[i].kattr.store = NULL;
+		data_attrs[i] = &data_sysfs[i].kattr.attr;
+	}
+	data_attrs[i] = NULL;
+
 	hoshilab_kobj = kobject_create_and_add("pe-platform", kernel_kobj);
 	if (!hoshilab_kobj) {
 		return -ENOMEM;
 	}
 	retval = sysfs_create_group(hoshilab_kobj, &config);
+	if (retval) {
+		kobject_put(hoshilab_kobj);
+	}
+	retval = sysfs_create_group(hoshilab_kobj, &data);
 	if (retval) {
 		kobject_put(hoshilab_kobj);
 	}
