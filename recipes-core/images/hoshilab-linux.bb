@@ -19,6 +19,7 @@ LICENSE = "MIT"
 #PACKAGE_INSTALL += " packagegroup-self-hosted-debug"
 # IMAGE_FSTYPES = "ext4"
 #
+
 IMAGE_INSTALL += " \
   postgresql \
   python3 \
@@ -27,6 +28,7 @@ IMAGE_INSTALL += " \
   python3-periphery \
   qtquickcontrols \
   nodejs \
+  kernel-module-hoshilab \
 "
 
 export IMAGE_BASENAME = "hoshilab-linux"
